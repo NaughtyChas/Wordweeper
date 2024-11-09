@@ -34,6 +34,23 @@ class Menu:
             "                                              |_|                "
         ]
 
+    def check_window_size(self):
+        h, w = self.stdscr.getmaxyx()
+        min_height = 25
+        min_width = 142
+
+        if h < min_height or w < min_width:
+            size_prompt = curses.newwin(h, w, 0, 0)
+            size_prompt.clear()
+            message = "Terminal window is too small! Please increase the window size."
+            y = h // 2
+            x = (w - len(message)) // 2
+            size_prompt.addstr(y, x, message, curses.A_BOLD)
+            size_prompt.refresh()
+            size_prompt.getch()  # Wait for user input
+            return False
+        return True
+
     def print_menu(self, menu):
         self.stdscr.clear()
         h, w = self.stdscr.getmaxyx()
@@ -71,11 +88,14 @@ class Menu:
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
         curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
 
-        main_menu = ["Start Game", "Options", "Exit Game"]
+        main_menu = ["Start Game", "View Statistics", "Exit Game"]
         start_game_menu = ["Classic Mode", "Timed Mode", "Back"]
         classic_mode_menu = ["Easy", "Hard", "Expert", "Back"]
 
         while True:
+            if not self.check_window_size():
+                continue
+
             if self.current_menu == "main":
                 self.print_menu(main_menu)
                 menu = main_menu
@@ -94,7 +114,7 @@ class Menu:
                 self.current_row += 1
             elif key == curses.KEY_ENTER or key in [10, 13]:
                 if menu[self.current_row] == "Start Game":
-                    diffcalc.update_words_file()  # 调用 diffcalc 模块中的 update_words_file 方法
+                    diffcalc.update_words_file()  # Calculate word difficulties in words.txt
                     self.current_menu = "start_game"
                     self.current_row = 0
                 elif menu[self.current_row] == "Exit Game":
